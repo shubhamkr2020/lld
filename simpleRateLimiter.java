@@ -7,7 +7,15 @@ import java.util.regex.*;
 public class Solution {
     
     public interface RateLimiter {
-        public boolean allowedRequest(Request req);
+        default public boolean allowedRequest(Request req) { 
+            return true;
+        };
+        default public void finishRequest(Request req) {};
+        default public void reset() {};
+    }
+    
+    public static class DefaultRateLimiter implements RateLimiter {
+        public DefaultRateLimiter(){}
     }
     
     public static class FixedLoadRateLimit implements RateLimiter {
@@ -22,6 +30,38 @@ public class Solution {
             if(req.load < maxLoad) 
                 return true;
             return false;
+        }
+    }
+    
+    public static class TokenBucketRateLimiter implements RateLimiter {
+        int tokenMaxSize, currentTokenSize;
+        
+        public TokenBucketRateLimiter(int tokenSize){
+            this.tokenMaxSize = tokenSize;
+            currentTokenSize = tokenSize;
+        }
+        
+        @Override
+        public boolean allowedRequest(Request req) {
+            if(currentTokenSize > 0) {
+                currentTokenSize--;
+                return true;
+            }
+            return false;
+        }
+        
+        @Override
+        public void finishRequest(Request req) {
+            currentTokenSize++;
+        }
+        
+        @Override
+        public void reset() {
+            currentTokenSize = tokenMaxSize;
+        }
+        
+        public void incrToken() {
+            currentTokenSize++;
         }
     }
     
@@ -44,6 +84,10 @@ public class Solution {
                 System.out.println("throttled..." + req.id);
             }
         }
+        public void finishRequest(Request req) {
+            rateLimiter.finishRequest(req);
+            requests.remove(req);
+        }
     }
     
     public static class Request {
@@ -57,12 +101,15 @@ public class Solution {
     }
 
     public static void main(String[] args) {
-        RateLimiter rateLimiter = new FixedLoadRateLimit(10);
+        // RateLimiter rateLimiter = new FixedLoadRateLimit(10);
+        RateLimiter rateLimiter = new TokenBucketRateLimiter(2);
+        // RateLimiter rateLimiter = new DefaultRateLimiter();
         Server server = new Server(1, rateLimiter);
         
         server.addRequest(new Request(1, 20));
         server.addRequest(new Request(2, 0));
         server.addRequest(new Request(3, 50));
+        server.finishRequest(new Request(2, 0));
         server.addRequest(new Request(4, 9));
     }
 }
