@@ -33,8 +33,8 @@ public class Solution {
         public Server getServer(Set<Server> servers);
     }
 
-    public static class RoundRobinBalancingStrategy implements BalancingStrategy {
-        public RoundRobinBalancingStrategy() {}
+    public static class MinimumLoadBalancingStrategy implements BalancingStrategy {
+        public MinimumLoadBalancingStrategy() {}
         
         @Override
         public Server getServer(Set<Server> servers) {
@@ -71,7 +71,7 @@ public class Solution {
     }
 
     public static void main(String[] args) {
-        BalancingStrategy strategy = new RoundRobinBalancingStrategy();
+        BalancingStrategy strategy = new MinimumLoadBalancingStrategy();
         LoadBalancer lb = new LoadBalancer(strategy);
         lb.addServer(new Server(1,15));
         lb.addServer(new Server(2,20));
