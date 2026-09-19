@@ -241,6 +241,77 @@ class StandardSubscriber implements EventVisitor {
 }
 
 
+// Concurrent Solution in Java to handle the parallel upload and subscriber unsubscriber scenarios.
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+interface Observer {
+    void update(String event);
+}
+
+interface Subject {
+    void register(Observer observer);
+    void unregister(Observer observer);
+    void notifyObservers(String event);
+}
+
+class ThreadSafePublisher implements Subject {
+    // 1. Thread-safe list handles concurrent registrations/unregistrations safely without explicit locks
+    private final List<Observer> observers = new CopyOnWriteArrayList<>();
+    
+    // 2. Dedicated thread pool to prevent slow observers from blocking the publisher thread
+    private final ExecutorService executor = Executors.newFixedThreadPool(4);
+
+    @Override
+    public void register(Observer observer) {
+        if (observer != null) observers.add(observer);
+    }
+
+    @Override
+    public void unregister(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(String event) {
+        for (Observer observer : observers) {
+            // Asynchronous dispatch: offloads execution to the thread pool
+            executor.submit(() -> {
+                try {
+                    observer.update(event);
+                } catch (Exception e) {
+                    System.err.println("Error notifying observer: " + e.getMessage());
+                }
+            });
+        }
+    }
+
+    public void publishNewData(String data) {
+        System.out.println("Publisher thread [" + Thread.currentThread().getName() + "] publishing data.");
+        notifyObservers(data);
+    }
+    
+    // Clean shutdown for the thread pool when done
+    public void shutdown() {
+        executor.shutdown();
+    }
+}
+
+class SlowSubscriber implements Observer {
+    private final String id;
+
+    public SlowSubscriber(String id) { this.id = id; }
+
+    @Override
+    public void update(String event) {
+        System.out.println("Subscriber " + id + " processing event on thread: " + Thread.currentThread().getName());
+        // Simulating heavy I/O or network latency
+    }
+}
+
 
 
 
