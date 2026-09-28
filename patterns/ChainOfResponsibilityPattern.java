@@ -1,8 +1,8 @@
 /*
 
 Problem:
-  1. If there are tasks one after the another to be done like a linked list fashion we can use iterator pattern and iterate over 
-      list of similar objects using the interface having the same type of reference inside it.
+  1. If there are tasks one after the another to be done like a linked list fashion we can use chain of responsibility pattern
+  	and iterate over linked list of similar objects using the interface having the same type of reference inside it.
   2. Example: ATM machine with multiple denomination notes inside it. Find number of notes required for 1000 denomination
                 then do the same for 500 denomination and then do the same for 100 denomination
 
