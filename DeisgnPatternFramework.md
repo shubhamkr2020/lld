@@ -10,6 +10,7 @@
 - **Law of Demeter** (Principle of Least Knowledge)
 - **Separation of Concerns (SoC)**
 - **KISS (Keep It Simple, Stupid)**
+- **Principle of Least Knownledge**
 
 ## Step-by-Step Process
 
